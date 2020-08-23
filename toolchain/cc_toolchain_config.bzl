@@ -1,9 +1,22 @@
-# toolchain/cc_toolchain_config.bzl:
 # NEW
-load("@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl", "tool_path")
+load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
+# NEW
+load(
+    "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
+    "feature",
+    "flag_group",
+    "flag_set",
+    "tool_path",
+)
+
+all_link_actions = [ # NEW
+    ACTION_NAMES.cpp_link_executable,
+    ACTION_NAMES.cpp_link_dynamic_library,
+    ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+]
 
 def _impl(ctx):
-    tool_paths = [ # NEW
+    tool_paths = [
         tool_path(
             name = "gcc",
             path = "/usr/bin/clang",
@@ -14,7 +27,7 @@ def _impl(ctx):
         ),
         tool_path(
             name = "ar",
-            path = "/usr/bin/ar",
+            path = "/bin/false",
         ),
         tool_path(
             name = "cpp",
@@ -37,9 +50,30 @@ def _impl(ctx):
             path = "/bin/false",
         ),
     ]
+
+    features = [ # NEW
+        feature(
+            name = "default_linker_flags",
+            enabled = True,
+            flag_sets = [
+                flag_set(
+                    actions = all_link_actions,
+                    flag_groups = ([
+                        flag_group(
+                            flags = [
+                                "-lstdc++",
+                            ],
+                        ),
+                    ]),
+                ),
+            ],
+        ),
+    ]
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
-        cxx_builtin_include_directories = [ # NEW
+        features = features, # NEW
+        cxx_builtin_include_directories = [
             "/usr/lib/llvm-9/lib/clang/9.0.1/include",
             "/usr/include",
         ],
@@ -51,7 +85,7 @@ def _impl(ctx):
         compiler = "clang",
         abi_version = "unknown",
         abi_libc_version = "unknown",
-        tool_paths = tool_paths, # NEW
+        tool_paths = tool_paths,
     )
 
 cc_toolchain_config = rule(
