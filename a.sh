@@ -1,0 +1,1 @@
+bazel build --config=clang_config //main:mcl
