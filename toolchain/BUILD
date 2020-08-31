@@ -25,4 +25,3 @@ cc_toolchain(
 load(":cc_toolchain_config.bzl", "cc_toolchain_config")
 
 cc_toolchain_config(name = "k8_toolchain_config")
-
